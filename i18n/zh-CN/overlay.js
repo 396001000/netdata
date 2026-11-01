@@ -55,11 +55,20 @@
     return tryNext(0);
   }
 
+  // Series (dimension) names stay English by convention, even when the same
+  // word is a translated menu label elsewhere (e.g. `system`, `user`, `Writeback`).
+  var SKIP_TESTIDS = {
+    "chartDimensions-name": true,
+    "chartPopover-dimension": true,
+    "chartLegendDimension-name": true
+  };
+
   function skippedElement(el) {
     while (el && el !== document.documentElement) {
       if (el.nodeType === 1) {
         if (SKIP_TAGS[el.tagName]) return true;
         if (el.hasAttribute && el.hasAttribute("data-i18n-skip")) return true;
+        if (el.getAttribute && SKIP_TESTIDS[el.getAttribute("data-testid")]) return true;
       }
       el = el.parentNode;
     }
@@ -86,6 +95,25 @@
       if (typeof hit === "string" && hit !== trimmed) return hit;
     }
     var m;
+    // Metrics TOC headings carry their nesting depth as a "-- " prefix in the
+    // same text node ("-- Memory", "---- Some Pressure"). Keep the prefix.
+    m = /^(-{1,6}|\u2022)\s+(.+)$/.exec(trimmed);
+    if (m && Object.prototype.hasOwnProperty.call(map, m[2])) {
+      var inner = map[m[2]];
+      if (typeof inner === "string" && inner !== m[2]) return m[1] + " " + inner;
+    }
+    m = /^Total Servers:\s*(\d+)$/i.exec(trimmed);
+    if (m) return "服务器总数：" + m[1];
+    m = /^(\d+)\s+results?\)$/i.exec(trimmed);
+    if (m) return m[1] + " 条结果）";
+    m = /^(\d+)\s+contexts?$/i.exec(trimmed);
+    if (m) return m[1] + " 个上下文";
+    m = /^Findings\s+\u00b7\s+(\d+)$/.exec(trimmed);
+    if (m) return "发现 · " + m[1];
+    m = /^Nodes:\s*(\d+)\s+selected\s*\/\s*(\d+)$/i.exec(trimmed);
+    if (m) return "节点：已选 " + m[1] + " / " + m[2];
+    m = /^Areas:\s*(\d+)\s+contexts selected\s*\/\s*(\d+)$/i.exec(trimmed);
+    if (m) return "区域：已选 " + m[1] + " 个上下文 / " + m[2];
     // Chart toolbar counts. Numbers vary; the surrounding chrome does not.
     m = /^(\d+)\s+of\s+(\d+)\s+dimensions$/i.exec(trimmed);
     if (m) return m[1] + " / " + m[2] + " 个维度";
@@ -95,6 +123,8 @@
     if (m) return m[1] + " 个标签";
     m = /^(\d+)\s+nodes?$/i.exec(trimmed);
     if (m) return m[1] + " 个节点";
+    m = /^(\d+)\s+instances?$/i.exec(trimmed);
+    if (m) return m[1] + " 个实例";
     m = /^(\d+)\s+systems?$/i.exec(trimmed);
     if (m) return m[1] + " 个系统";
     m = /^every\s+(\d+)\s*s$/i.exec(trimmed);

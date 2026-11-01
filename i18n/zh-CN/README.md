@@ -40,6 +40,8 @@ The live Netdata Cloud UI (`app.netdata.cloud`) will not load this overlay. Hard
 
 Add or correct entries in `strings.zh-CN.json`. Keys must match the English label exactly, including capitalization.
 
+Metrics TOC headings are matched after stripping their `-`/`•` depth prefix. Chart series names (`data-testid="chartDimensions-name"` and the popover/legend equivalents) are never translated, so do not rely on removing a word from the map to protect a series name.
+
 Mark a subtree to leave untranslated:
 
 ```html
